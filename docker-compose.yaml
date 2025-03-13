@@ -1,0 +1,53 @@
+name: url-shortner
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: url-shortner-mongo
+    restart: always
+    ports:
+      - "127.0.0.1:27017:27017"  # Bind to localhost only
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: amrit
+      MONGO_INITDB_ROOT_PASSWORD: raj
+    networks:
+      - url-shortner
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-config:/data/configdb  # Add config volume to prevent anonymous volume
+
+  redis:
+    image: redis:7
+    container_name: url-shortner-redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"  # Bind to localhost only
+    command: redis-server --requirepass raj
+    networks:
+      - url-shortner
+    volumes:
+      - redis-data:/data  # Redis persistence
+
+  mongo-express:
+    image: mongo-express
+    container_name: url-shortner-mongo-express
+    restart: always
+    ports:
+      - "127.0.0.1:8081:8081"  # Bind to localhost only
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: amrit
+      ME_CONFIG_BASICAUTH_PASSWORD: raj
+      ME_CONFIG_MONGODB_URL: mongodb://amrit:raj@mongo:27017/
+      ME_CONFIG_BASICAUTH: "true"
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+    networks:
+      - url-shortner
+
+networks:
+  url-shortner:
+    driver: bridge
+
+volumes:
+  mongodb-data:    # Volume for MongoDB data
+  mongodb-config:  # Volume for MongoDB config
+  redis-data:      # Volume for Redis persistence
